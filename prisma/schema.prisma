@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  IMPRENSA
+  AGENCIA
+}
+
+enum Setor {
+  IMPRENSA
+  AGENCIA
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(IMPRENSA)
+  setor        Setor?
+  createdAt    DateTime @default(now())
+}
+
+// ---------- Calendário da agência ----------
+model CalendarActivity {
+  id         String   @id @default(cuid())
+  nome       String
+  data       String // yyyy-MM-dd
+  hora       String?
+  categoria  String // publicacao | reuniao | evento | outro
+  aDefinir   Boolean  @default(false)
+  isNews     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Newsletter {
+  id           String @id @default(cuid())
+  data         String @unique // yyyy-MM-dd
+  responsavel  String
+}
+
+model IndustryEvent {
+  id          String  @id @default(cuid())
+  titulo      String
+  descricao   String?
+  periodo     String? // free text period e.g. "De 21/12/2026 a 05/01/2027" or "05 a 08"
+  mes         String? // Janeiro..Dezembro, when tied to a specific month
+  data        String? // yyyy-MM-dd when applicable
+}
+
+model Trip {
+  id          String @id @default(cuid())
+  evento      String
+  nome        String
+  local       String
+  dataInicio  String
+  dataFim     String
+}
+
+// ---------- Férias ----------
+model Vacation {
+  id         String @id @default(cuid())
+  nome       String
+  setor      Setor
+  dataInicio String // yyyy-MM-dd
+  dataFim    String // yyyy-MM-dd
+}
+
+// ---------- Produção de textos ----------
+model TextProductionStat {
+  id         String @id @default(cuid())
+  mes        String // Janeiro..Dezembro
+  categoria  String // releases, avisos, posicionamentos, notas, artigos, briefings, entrevistas
+  org        String // CNI, SENAI, SESI, IEL
+  quantidade Int    @default(0)
+  tema       String @default("")
+
+  @@unique([mes, categoria, org])
+}
+
+model TextProductionItem {
+  id        String @id @default(cuid())
+  mes       String
+  categoria String
+  org       String
+  assunto   String
+  numero    String?
+}
+
+// ---------- Imprensa / porta-vozes / relacionamento ----------
+model PressTeamMember {
+  id         String @id @default(cuid())
+  nome       String
+  ramal      String?
+  area       String?
+  atividades String?
+}
+
+model Spokesperson {
+  id     String @id @default(cuid())
+  nome   String
+  area   String?
+  agenda String?
+}
+
+model RelationshipAgenda {
+  id                String @id @default(cuid())
+  data              String // yyyy-MM-dd
+  portaVoz          String
+  nome              String
+  temaSugerido      String?
+  jornalistaVeiculo String?
+}
+
+model JournalismTeamMember {
+  id     String @id @default(cuid())
+  nome   String
+  cargo  String
+}
+
+model AgencyMember {
+  id         String @id @default(cuid())
+  nome       String
+  funcao     String?
+  cor        String?
+  atividades String // JSON-encoded array of strings
+}
+
+// ---------- Design & Multimídia ----------
+model DesignActivity {
+  id           String  @id @default(cuid())
+  demandante   String?
+  executor     String?
+  demanda      String?
+  descricao    String?
+  quantidade   Int     @default(0)
+  dataInicio   String?
+  dataEntrega  String?
+  usoIA        String? // SIM | NÃO
+  linkAcesso   String?
+}
+
+model MultimediaActivity {
+  id              String  @id @default(cuid())
+  demandante      String?
+  executor        String?
+  demanda         String?
+  formato         String?
+  fotos           Int     @default(0)
+  audioTime       String?
+  videoTime       String?
+  upload          String?
+  dataSolicitacao String?
+  dataEntrega     String?
+}
+
+// ---------- Histórico ----------
+model ChangeLog {
+  id             String   @id @default(cuid())
+  description    String
+  collectionPath String
+  deletedItem    String // JSON-encoded
+  timestamp      String?
+  createdAt      DateTime @default(now())
+}
