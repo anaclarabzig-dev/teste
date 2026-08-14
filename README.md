@@ -7,20 +7,45 @@ sistema anterior.
 ## Stack
 
 - Next.js 16 (App Router) + TypeScript + Tailwind CSS
-- Prisma 6 + SQLite (`prisma/dev.db`, não versionado)
+- Prisma 6 + PostgreSQL
 - Auth.js (NextAuth v5) com login por usuário/senha e sessão JWT
 
 ## Como rodar localmente
 
+Requer um banco PostgreSQL (local ou na nuvem — pode usar o mesmo banco do
+deploy, veja a seção seguinte).
+
 ```bash
 npm install
-cp .env.example .env   # ajuste AUTH_SECRET em produção
+cp .env.example .env   # preencha DATABASE_URL e gere um AUTH_SECRET
 npx prisma migrate deploy
 npx prisma db seed
 npm run dev
 ```
 
 Acesse `http://localhost:3000`.
+
+## Deploy na Vercel
+
+1. Crie um banco Postgres gratuito: no painel da Vercel, aba **Storage** →
+   **Create Database** → **Postgres** (ou use o **Neon** diretamente em
+   neon.tech). Copie a `DATABASE_URL` gerada.
+2. Importe o repositório na Vercel (**Add New → Project**, selecione
+   `anaclarabzig-dev/teste`, branch `claude/sistema-atividades-online-2mzgu7`).
+3. Em **Environment Variables**, adicione:
+   - `DATABASE_URL`: a connection string do passo 1
+   - `AUTH_SECRET`: um valor aleatório (gere com `openssl rand -base64 32`)
+4. Clique em **Deploy**. O Prisma Client é gerado automaticamente no build
+   (script `postinstall`).
+5. Depois do primeiro deploy, rode as migrações e o seed **uma vez**, do seu
+   computador, apontando pra `DATABASE_URL` de produção:
+   ```bash
+   set DATABASE_URL=postgresql://...   (Windows PowerShell: $env:DATABASE_URL="...")
+   npx prisma migrate deploy
+   npx prisma db seed
+   ```
+6. Acesse a URL que a Vercel gerou (ex: `teste.vercel.app`) e faça login
+   normalmente.
 
 ## Login inicial
 
